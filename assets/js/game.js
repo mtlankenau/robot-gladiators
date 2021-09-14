@@ -1,9 +1,3 @@
-// Game States
-// "WIN" - Player robot has defeated all enemy-robots
-//    * Fight all enemy-robots
-// "LOSE" - Player robot's health is zero or less
-//    * 
-
 var playerName = window.prompt("What is your robot's name?");
 var playerHealth = 100;
 var playerAttack = 10;
@@ -13,12 +7,7 @@ var enemyNames = ["Roborto", "Amy Android", "Robo Trumble"];
 var enemyHealth = 50;
 var enemyAttack = 12;
 
-// for(var i = 0; i < enemyNames.length; i++) {
-//     console.log(enemyNames[i]);
-//     console.log(i);
-//     console.log(enemyNames[i] + " is at " + i + " index");
-// }
-
+// fight function (now with parameter for enemy's name)
 var fight = function(enemyName) {
     // repeat and execute as long as the enemy-robot is alive
     while(playerHealth > 0 && enemyHealth > 0) {
@@ -34,15 +23,18 @@ var fight = function(enemyName) {
             if (confirmSkip) {
                 window.alert(playerName + " has chosen to skip the fight...at a cost!");
                 //subtract money from playerMoney for skipping
-                playerMoney = playerMoney - 10;
+                playerMoney = Math.max(0, playerMoney - 10);
                 // Log a resulting message to the console so we know that it worked
                 console.log("playerMoney", playerMoney);
                 break;
             }
         }
 
-        // remove enemy's health by subtracting the amount set in the playerAttack variable
-        enemyHealth = enemyHealth - playerAttack;
+        // generate random damage value to deduct from enemyHealth based on playerAttack
+        var damage = randomNumber(playerAttack - 3, playerAttack);
+
+        enemyHealth = Math.max(0, enemyHealth - damage);
+        
         // Log a resulting message to the console so we know that it worked
         console.log(
             playerName + " attacked " + enemyName + ". " + enemyName + " now has " + enemyHealth + " health remaining."
@@ -59,8 +51,11 @@ var fight = function(enemyName) {
             window.alert(enemyName + " still has " + enemyHealth + " health left.");
         }
 
-        // remove player's health by subtracting the amount set in the enemyAttack variable
-        playerHealth = playerHealth - enemyAttack; 
+        // generate random damage value to deduct from playerHealth based on enemyAttack
+        var damage = randomNumber(enemyAttack - 3, enemyAttack);
+
+        playerHealth = Math.max(0, playerHealth - damage);
+
         // Log a resulting message to the console so we know that it worked
         console.log(
             enemyName + " attacked " + playerName + ". " + playerName + " now has " + playerHealth + " health remaining."
@@ -77,6 +72,13 @@ var fight = function(enemyName) {
     }
 };
 
+// function to generate a random numeric value
+var randomNumber = function(min, max) {
+    var value = Math.floor(Math.random() * (max - min + 1) + min);
+
+    return value;
+};
+
 // function to start a new game
 var startGame = function() {
     //reset player stats
@@ -84,7 +86,7 @@ var startGame = function() {
     playerAttack = 10;
     playerMoney = 10;
 
-    // for loop begins
+    // for loop begins: fight each enemy robot by looping over them and fighting them one at a time
     for(var i = 0; i < enemyNames.length; i++) {
         // if player is still alive, keep fighting
         if (playerHealth > 0) {
@@ -95,16 +97,14 @@ var startGame = function() {
             var pickedEnemyName = enemyNames[i];
     
             // reset enemyHealth before starting a new fight/round
-            enemyHealth = 50;
-    
-            // use debugger to pause script from running and check what's going on at the moment in the code
-            // debugger;
+            enemyHealth = randomNumber(40, 60);
     
             //pass the pickedEnemyName variable's value into the fight function, where it will assume the value of the enemyName parameter
             fight(pickedEnemyName);
 
             // if we're not at the last enemy in the array
             if (playerHealth > 0 && i < enemyNames.length -1) {
+                // ask if player wants to use the store before the next round
                 var storeConfirm = window.confirm("The fight is over, visit the store before the next round?");
 
                 // if yes, take them to the store() function
@@ -127,6 +127,8 @@ var startGame = function() {
 
 //function to end the entire game
 var endGame = function() {
+    window.alert("The game has now ended. Let's see how you did!");
+
     // if player is still alive, player wins!
     if (playerHealth > 0) {
         window.alert("Great job, you've survived the game! You now have a score of " + playerMoney + ".");
@@ -135,6 +137,7 @@ var endGame = function() {
     else {
         window.alert("You've lost your robot in battle.");
     }
+
     // ask player if they'd like to play again
     var playAgainConfirm = window.confirm("Would you like to play again?");
 
@@ -147,6 +150,7 @@ var endGame = function() {
     }
 };
 
+// go to shop between battles function
 var shop = function() {
     // ask player what they'd like to do
     var shopOptionPrompt = window.prompt(
@@ -165,6 +169,7 @@ var shop = function() {
                 // increase health and decrease money
                 playerHealth = playerHealth + 20;
                 playerMoney = playerMoney - 7;
+                console.log(playerName + " chose 'REFILL' and now has " + playerHealth + " health reamining and " + playerMoney + " money remaining.");
             }
             else {
                 window.alert("You don't have enough money!");
@@ -180,6 +185,7 @@ var shop = function() {
                 // increase attack and decrease money
                 playerAttack = playerAttack + 6;
                 playerMoney = playerMoney - 7;
+                console.log(playerName + " chose 'UPGRADE' and now has " + playerAttack + " maximum attack and " + playerMoney + " money remaining.");
             }
             else {
                 window.alert("You don't have enough money!")
@@ -190,6 +196,7 @@ var shop = function() {
         case "LEAVE":
         case "leave":
             window.alert("Leaving the store.");
+            console.log(playerName + " chose 'LEAVE' and still has " + playerAttack + " maximum attack, " + playerHealth + " health, and " + playerMoney + " money remaining.");
 
             // do nothing, so function will end
             break;
@@ -197,6 +204,8 @@ var shop = function() {
         // if none of the previous options are entered,
         default:
             window.alert("You did not pick a valid option. Try again.");
+
+            // call shop() again to force player to pick a valid option
             shop();
             break;
     }
